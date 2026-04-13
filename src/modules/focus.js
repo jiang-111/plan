@@ -38,10 +38,23 @@ export function takeoverRuntime(runtime) { if (!runtime) return null; const next
 export function isFreeFocusInactive(runtime) { if (!runtime || runtime.mode !== 'free') return false; const lastActivityAt = runtime.lastUserActivityAt || runtime.activeFocusStart || 0; return nowTs() - lastActivityAt >= App.constants.FOCUS_INACTIVITY_LIMIT_MS; }
 export function markFreeFocusAsPendingSettlement(runtime) {
   if (!runtime || runtime.mode !== 'free' || loadPendingSettlement()) return;
+
   const lastActivityAt = runtime.lastUserActivityAt || runtime.activeFocusStart;
-  const suggestedMinutes = Math.max(0, Math.floor((lastActivityAt - runtime.activeFocusStart) / 60000));
-  savePendingSettlement({ activeFocusStart: runtime.activeFocusStart, lastUserActivityAt, suggestedMinutes, createdAt: nowTs() });
-  clearFocusRuntime(); stopFocusHeartbeat(); stopLocalFocusLoopOnly();
+  const suggestedMinutes = Math.max(
+    0,
+    Math.floor((lastActivityAt - runtime.activeFocusStart) / 60000)
+  );
+
+  savePendingSettlement({
+    activeFocusStart: runtime.activeFocusStart,
+    lastUserActivityAt: lastActivityAt,
+    suggestedMinutes,
+    createdAt: nowTs(),
+  });
+
+  clearFocusRuntime();
+  stopFocusHeartbeat();
+  stopLocalFocusLoopOnly();
 }
 export function recordUserActivity(force = false) {
   const runtime = loadFocusRuntime();
